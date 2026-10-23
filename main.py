@@ -1,7 +1,15 @@
 import crawl
 import sys
 import requests
+import asynccrawler
 from copy import deepcopy
+import asyncio
+import time
+
+async def crawl_site_async(base_url:str):
+    page_data = {}
+    async with asynccrawler.AsyncCrawler(base_url, base_url, page_data, 10) as async_crawler:
+        return await async_crawler.crawl()
 
 def crawl_page(base_url: str, current_url: str = None, page_data: dict[str, crawl.PageData] = None):
     if not current_url.startswith(base_url):
@@ -12,7 +20,6 @@ def crawl_page(base_url: str, current_url: str = None, page_data: dict[str, craw
         return
 
     cur_html = get_html(current_url)
-    print(f"crawling {current_url}")
 
     page_data[normalized_url] = crawl.extract_page_data(cur_html, current_url)
     links = deepcopy(page_data[normalized_url]["outgoing_links"])
@@ -30,7 +37,7 @@ def get_html(url:str) -> str:
 
     return response.text
 
-def main():
+async def main():
     if len(sys.argv) < 2:
         print("no website provided")
         sys.exit(1)
@@ -39,11 +46,11 @@ def main():
         sys.exit(1)
     base_url = sys.argv[1]
     print(f"starting crawl of {base_url}")
-    page_data = {}
-    crawl_page(base_url, base_url, page_data)
-    for url, page in page_data.items():
-        print(url)
-        print(f"\t{page}")
+
+    start = time.time()
+    page_data = await crawl_site_async(base_url)
+    print(time.time() - start)
+
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
