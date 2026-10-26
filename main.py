@@ -5,6 +5,7 @@ import asynccrawler
 from copy import deepcopy
 import asyncio
 import time
+from json_report import write_json_report
 
 async def crawl_site_async(base_url:str, max_concurrency: int, max_pages: int):
     page_data = {}
@@ -65,8 +66,7 @@ async def main():
     start = time.time()
     page_data = await crawl_site_async(base_url, max_concurrency, max_pages)
     print(time.time() - start)
-    for item in page_data:
-        print(item)
+    write_json_report(page_data)
 
 if __name__ == "__main__":
     asyncio.run(main())
